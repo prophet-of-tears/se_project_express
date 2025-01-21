@@ -1,4 +1,6 @@
 const clothingItems = require("../models/clothingItems");
+const user = require("../models/user.js");
+const mongoose = require("mongoose");
 const {
   invalidDataError,
   dataNotFound,
@@ -43,7 +45,7 @@ const deleteClothingItems = (req, res) => {
   const { item_id } = req.params;
   clothingItems
     .findByIdAndDelete(item_id)
-    //.orFail()
+    .orFail()
     .then((item) => res.status(200).send(item))
     .catch((err) => {
       console.error(err);
@@ -57,4 +59,63 @@ const deleteClothingItems = (req, res) => {
     });
 };
 
-module.exports = { getClothingItems, addClothingItems, deleteClothingItems };
+const handleLike = (req, res) => {
+  const { itemId } = req.params;
+  const { _id } = req.user._id;
+  if (!mongoose.Types.ObjectId.isValid(itemId)) {
+    return res.status(invalidDataError).send({ message: "Invalid ID format" });
+  }
+  clothingItems
+    .findByIdAndUpdate(itemId, { $addToSet: { likes: _id } }, { new: true })
+    .orFail()
+    .then((item) => res.status(201).send({ item }))
+    .catch((err) => {
+      console.error(err.name);
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(dataNotFound).send({ message: err.message });
+      }
+
+      return res.status(serverError).send({ message: err.message });
+    });
+};
+
+const handleDislike = (req, res) => {
+  const { itemId } = req.params;
+  const { _id } = req.user._id;
+  clothingItems
+    .findByIdAndUpdate(itemId, { $pull: { likes: _id } }, { new: true })
+    .orFail()
+    .then((item) => res.status(200).send({ item }))
+    .catch((err) => {
+      console.error(err.name);
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(invalidDataError).send({ message: err.message });
+      } else if (err.statusCode === dataNotFound) {
+        return res.status(dataNotFound).send({ message: err.message });
+      }
+      return res.status(serverError).send({ message: err.message });
+    });
+};
+
+module.exports = {
+  getClothingItems,
+  addClothingItems,
+  deleteClothingItems,
+  handleLike,
+  handleDislike,
+};
+
+// module.exports.likeItem = (req, res) =>
+//   clothingItems.findByIdAndUpdate(
+//     req.params.itemId,
+//     { $addToSet: { likes: req.user._id } }, // add _id to the array if it's not there yet
+//     { new: true }
+//   );
+// //...
+
+// module.exports.dislikeItem = (req, res) =>
+//   clothingItems.findByIdAndUpdate(
+//     req.params.itemId,
+//     { $pull: { likes: req.user._id } }, // remove _id from the array
+//     { new: true }
+//   );
