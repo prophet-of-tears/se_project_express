@@ -1,6 +1,5 @@
 const clothingItems = require("../models/clothingItems");
-const user = require("../models/user.js");
-const mongoose = require("mongoose");
+
 const {
   invalidDataError,
   dataNotFound,
