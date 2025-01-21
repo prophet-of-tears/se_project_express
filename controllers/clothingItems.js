@@ -62,16 +62,16 @@ const deleteClothingItems = (req, res) => {
 const handleLike = (req, res) => {
   const { itemId } = req.params;
   const { _id } = req.user._id;
-  if (!mongoose.Types.ObjectId.isValid(itemId)) {
-    return res.status(invalidDataError).send({ message: "Invalid ID format" });
-  }
+
   clothingItems
     .findByIdAndUpdate(itemId, { $addToSet: { likes: _id } }, { new: true })
     .orFail()
     .then((item) => res.status(201).send({ item }))
     .catch((err) => {
-      console.error(err.name);
-      if (err.name === "DocumentNotFoundError") {
+      console.error(err);
+      console.log(err.name);
+
+      if (err.name === "CastError") {
         return res.status(dataNotFound).send({ message: err.message });
       }
 
@@ -88,10 +88,9 @@ const handleDislike = (req, res) => {
     .then((item) => res.status(200).send({ item }))
     .catch((err) => {
       console.error(err.name);
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(invalidDataError).send({ message: err.message });
-      } else if (err.statusCode === dataNotFound) {
-        return res.status(dataNotFound).send({ message: err.message });
+
+      if (err.name === "CastError") {
+        return res.status(invalidDataError).send({ message: "incorrect Id" });
       }
       return res.status(serverError).send({ message: err.message });
     });
