@@ -1,10 +1,11 @@
 const router = require("express").Router();
-const { handleLike, handleDislike } = require("../controllers/clothingItems");
 
 const {
   getClothingItems,
   addClothingItems,
   deleteClothingItems,
+  handleLike,
+  handleDislike,
 } = require("../controllers/clothingItems");
 
 // start with /items

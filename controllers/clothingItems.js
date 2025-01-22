@@ -1,9 +1,9 @@
 const clothingItems = require("../models/clothingItems");
 
 const {
-  invalidDataError,
-  dataNotFound,
-  serverError,
+  invalidDataError, // 400
+  dataNotFound, // 404
+  serverError, // 500
 } = require("../utils/errors.js");
 
 const getClothingItems = (req, res) => {
@@ -49,7 +49,7 @@ const deleteClothingItems = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "CastError") {
-        res.status(invalidDataError).send({ message: err.message });
+        return res.status(invalidDataError).send({ message: err.message });
       }
 
       return res
@@ -60,20 +60,22 @@ const deleteClothingItems = (req, res) => {
 
 const handleLike = (req, res) => {
   const { itemId } = req.params;
-  const { _id } = req.user._id;
-
+  const { _id } = req.user;
   clothingItems
     .findByIdAndUpdate(itemId, { $addToSet: { likes: _id } }, { new: true })
     .orFail()
-    .then((item) => res.status(201).send({ item }))
+    .then((item) => res.status(200).send({ item }))
     .catch((err) => {
       console.error(err);
+      console.log(_id);
+      console.log(itemId);
       console.log(err.name);
-
       if (err.name === "CastError") {
+        return res.status(invalidDataError).send({ message: err.message });
+      }
+      if (err.name === "DocumentNotFoundError") {
         return res.status(dataNotFound).send({ message: err.message });
       }
-
       return res.status(serverError).send({ message: err.message });
     });
 };
@@ -81,6 +83,7 @@ const handleLike = (req, res) => {
 const handleDislike = (req, res) => {
   const { itemId } = req.params;
   const { _id } = req.user._id;
+
   clothingItems
     .findByIdAndUpdate(itemId, { $pull: { likes: _id } }, { new: true })
     .orFail()
@@ -90,6 +93,9 @@ const handleDislike = (req, res) => {
 
       if (err.name === "CastError") {
         return res.status(invalidDataError).send({ message: "incorrect Id" });
+      }
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(dataNotFound).send({ message: err.message });
       }
       return res.status(serverError).send({ message: err.message });
     });
