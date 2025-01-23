@@ -4,7 +4,7 @@ const {
   invalidDataError, // 400
   dataNotFound, // 404
   serverError, // 500
-} = require("../utils/errors.js");
+} = require("../utils/errors");
 
 const getClothingItems = (req, res) => {
   clothingItems
@@ -12,10 +12,10 @@ const getClothingItems = (req, res) => {
     .then((items) => res.status(200).send(items))
     .catch((err) => {
       console.error(err);
-      if (err.name === "referenceError") {
-        res.status(invalidDataError).send({ message: err.message });
-      }
-      return res.status(serverError).send({ message: err.message });
+
+      return res
+        .status(serverError)
+        .send({ message: "An error has occured on the server" });
     });
 };
 
@@ -36,14 +36,16 @@ const addClothingItems = (req, res) => {
       if (err.name === "ValidationError") {
         return res.status(invalidDataError).send({ message: err.message });
       }
-      return res.status(serverError).send({ message: err.message });
+      return res
+        .status(serverError)
+        .send({ message: "An error has occured on the server" });
     });
 };
 
 const deleteClothingItems = (req, res) => {
-  const { item_id } = req.params;
+  const { itemId } = req.params;
   clothingItems
-    .findByIdAndDelete(item_id)
+    .findByIdAndDelete(itemId)
     .orFail()
     .then((item) => res.status(200).send(item))
     .catch((err) => {
@@ -51,10 +53,14 @@ const deleteClothingItems = (req, res) => {
       if (err.name === "CastError") {
         return res.status(invalidDataError).send({ message: err.message });
       }
-
+      if (err.name === "DocumentNotFound") {
+        return res
+          .status(dataNotFound)
+          .send({ message: "the item doesn't exist" });
+      }
       return res
-        .status(dataNotFound)
-        .send({ message: "the item doesn't exist" });
+        .status(serverError)
+        .send({ message: "An error has occured on the server" });
     });
 };
 
@@ -76,13 +82,15 @@ const handleLike = (req, res) => {
       if (err.name === "DocumentNotFoundError") {
         return res.status(dataNotFound).send({ message: err.message });
       }
-      return res.status(serverError).send({ message: err.message });
+      return res
+        .status(serverError)
+        .send({ message: "An error has occured on the server" });
     });
 };
 
 const handleDislike = (req, res) => {
   const { itemId } = req.params;
-  const { _id } = req.user._id;
+  const { _id } = req.user;
 
   clothingItems
     .findByIdAndUpdate(itemId, { $pull: { likes: _id } }, { new: true })
@@ -97,7 +105,9 @@ const handleDislike = (req, res) => {
       if (err.name === "DocumentNotFoundError") {
         return res.status(dataNotFound).send({ message: err.message });
       }
-      return res.status(serverError).send({ message: err.message });
+      return res
+        .status(serverError)
+        .send({ message: "An error has occured on the server" });
     });
 };
 
@@ -108,18 +118,3 @@ module.exports = {
   handleLike,
   handleDislike,
 };
-
-// module.exports.likeItem = (req, res) =>
-//   clothingItems.findByIdAndUpdate(
-//     req.params.itemId,
-//     { $addToSet: { likes: req.user._id } }, // add _id to the array if it's not there yet
-//     { new: true }
-//   );
-// //...
-
-// module.exports.dislikeItem = (req, res) =>
-//   clothingItems.findByIdAndUpdate(
-//     req.params.itemId,
-//     { $pull: { likes: req.user._id } }, // remove _id from the array
-//     { new: true }
-//   );

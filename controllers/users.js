@@ -3,7 +3,7 @@ const {
   invalidDataError,
   dataNotFound,
   serverError,
-} = require("../utils/errors.js");
+} = require("../utils/errors");
 
 const getUsers = (req, res) => {
   user
@@ -11,11 +11,9 @@ const getUsers = (req, res) => {
     .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.error(err);
-      if (err.name === "validationError") {
-        res.status(dataNotFound).send({ message: "user not found" });
-      } else {
-        return res.status(serverError).send({ message: err.message });
-      }
+      return res
+        .status(serverError)
+        .send({ message: "An error has occured on the server" });
     });
 };
 
@@ -24,13 +22,15 @@ const createUser = (req, res) => {
 
   user
     .create({ name, avatar })
-    .then((user) => res.status(201).send(user))
+    .then((users) => res.status(201).send(users))
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
         return res.status(invalidDataError).send({ message: err.message });
       }
-      return res.status(serverError).send({ message: err.message });
+      return res
+        .status(serverError)
+        .send({ message: "An error has occured on the server" });
     });
 };
 
@@ -39,15 +39,18 @@ const getUserById = (req, res) => {
   user
     .findById(userId)
     .orFail()
-    .then((user) => res.status(200).send(user))
+    .then((users) => res.status(200).send(users))
     .catch((err) => {
       console.error(err);
       if (err.name === "DocumentNotFoundError") {
         return res.status(dataNotFound).send({ message: err.message });
-      } else if (err.name === "CastError") {
+      }
+      if (err.name === "CastError") {
         return res.status(invalidDataError).send({ message: err.message });
       }
-      return res.status(serverError).send({ message: err.message });
+      return res
+        .status(serverError)
+        .send({ message: "An error has occured on the server" });
     });
 };
 
