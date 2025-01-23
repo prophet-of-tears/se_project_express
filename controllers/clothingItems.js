@@ -45,7 +45,7 @@ const deleteClothingItems = (req, res) => {
       if (err.name === "CastError") {
         return res.status(invalidDataError).send({ message: err.message });
       }
-      if (err.name === "DocumentNotFound") {
+      if (err.name === "DocumentNotFoundError") {
         return res
           .status(dataNotFound)
           .send({ message: "the item doesn't exist" });
