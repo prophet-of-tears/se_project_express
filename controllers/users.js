@@ -9,11 +9,11 @@ const getUsers = (req, res) => {
   user
     .find({})
     .then((users) => res.status(200).send(users))
-    .catch((err) => {
-      return res
+    .catch(() =>
+      res
         .status(serverError)
-        .send({ message: "An error has occured on the server" });
-    });
+        .send({ message: "An error has occured on the server" })
+    );
 };
 
 const createUser = (req, res) => {

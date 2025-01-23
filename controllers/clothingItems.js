@@ -10,11 +10,11 @@ const getClothingItems = (req, res) => {
   clothingItems
     .find({})
     .then((items) => res.status(200).send(items))
-    .catch((err) => {
-      return res
+    .catch(() =>
+      res
         .status(serverError)
-        .send({ message: "An error has occured on the server" });
-    });
+        .send({ message: "An error has occured on the server" })
+    );
 };
 
 const addClothingItems = (req, res) => {
@@ -23,7 +23,6 @@ const addClothingItems = (req, res) => {
   clothingItems
     .create({ name, weather, imageUrl, owner: req.user._id })
     .then((items) => {
-      console.log(items);
       res.status(201).send({ data: items });
     })
     .catch((err) => {
