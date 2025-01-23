@@ -10,7 +10,6 @@ const getUsers = (req, res) => {
     .find({})
     .then((users) => res.status(200).send(users))
     .catch((err) => {
-      console.error(err);
       return res
         .status(serverError)
         .send({ message: "An error has occured on the server" });
@@ -24,7 +23,6 @@ const createUser = (req, res) => {
     .create({ name, avatar })
     .then((users) => res.status(201).send(users))
     .catch((err) => {
-      console.error(err);
       if (err.name === "ValidationError") {
         return res.status(invalidDataError).send({ message: err.message });
       }
@@ -41,7 +39,6 @@ const getUserById = (req, res) => {
     .orFail()
     .then((users) => res.status(200).send(users))
     .catch((err) => {
-      console.error(err);
       if (err.name === "DocumentNotFoundError") {
         return res.status(dataNotFound).send({ message: err.message });
       }

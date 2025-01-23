@@ -11,8 +11,6 @@ const getClothingItems = (req, res) => {
     .find({})
     .then((items) => res.status(200).send(items))
     .catch((err) => {
-      console.error(err);
-
       return res
         .status(serverError)
         .send({ message: "An error has occured on the server" });
@@ -21,8 +19,6 @@ const getClothingItems = (req, res) => {
 
 const addClothingItems = (req, res) => {
   const { name, weather, imageUrl } = req.body;
-  console.log(req);
-  console.log(req.body);
 
   clothingItems
     .create({ name, weather, imageUrl, owner: req.user._id })
@@ -31,8 +27,6 @@ const addClothingItems = (req, res) => {
       res.status(201).send({ data: items });
     })
     .catch((err) => {
-      console.error(err);
-
       if (err.name === "ValidationError") {
         return res.status(invalidDataError).send({ message: err.message });
       }
@@ -49,7 +43,6 @@ const deleteClothingItems = (req, res) => {
     .orFail()
     .then((item) => res.status(200).send(item))
     .catch((err) => {
-      console.error(err);
       if (err.name === "CastError") {
         return res.status(invalidDataError).send({ message: err.message });
       }
@@ -72,10 +65,6 @@ const handleLike = (req, res) => {
     .orFail()
     .then((item) => res.status(200).send({ item }))
     .catch((err) => {
-      console.error(err);
-      console.log(_id);
-      console.log(itemId);
-      console.log(err.name);
       if (err.name === "CastError") {
         return res.status(invalidDataError).send({ message: err.message });
       }
@@ -97,8 +86,6 @@ const handleDislike = (req, res) => {
     .orFail()
     .then((item) => res.status(200).send({ item }))
     .catch((err) => {
-      console.error(err.name);
-
       if (err.name === "CastError") {
         return res.status(invalidDataError).send({ message: "incorrect Id" });
       }
