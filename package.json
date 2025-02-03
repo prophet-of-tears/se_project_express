@@ -12,6 +12,8 @@
   "author": "Jeremiah Partee",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "express": "^4.21.2",
     "mongoose": "^6.6.1",
     "validator": "^13.12.0"

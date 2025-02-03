@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const authorization = require("../middlewares/auth");
 
 const {
   getClothingItems,
@@ -11,6 +12,11 @@ const {
 // start with /items
 
 router.get("/", getClothingItems);
+
+router.use(authorization);
+
+router.get("/protected-route", authorization);
+
 router.post("/", addClothingItems);
 router.delete("/:itemId", deleteClothingItems);
 router.put("/:itemId/likes", handleLike);
