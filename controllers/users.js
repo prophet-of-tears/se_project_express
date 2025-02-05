@@ -1,5 +1,6 @@
 const user = require("../models/user");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const {
   invalidDataError,
   dataNotFound,
@@ -20,7 +21,6 @@ const getUsers = (req, res) => {
 
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
-  console.log(name, avatar);
 
   if (!name || !avatar || !email || !password) {
     return res
@@ -32,13 +32,13 @@ const createUser = (req, res) => {
     .hash(req.body.password, 10)
     .then((hash) =>
       user.create({
-        email: req.body.email,
+        email,
         password: hash,
-        name: name,
-        avatar: avatar,
+        name,
+        avatar,
       })
     )
-    .then((users) => res.status(201).send(users))
+    .then((user) => res.status(201).send(user))
     .catch((err) => {
       if (err.name === "ValidationError") {
         return res.status(invalidDataError).send({ message: err.message });
@@ -72,24 +72,23 @@ const getCurrentUser = (req, res) => {
     });
 };
 
-const login = (req, res) => {
-  const { email, password } = req.body;
-
-  // call user.findByCredentials
-  // if user is found, create token
-  //   const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
-  //   expiresIn: "7d",
-  // });
-  // send token as response
-  user.findUserByCredentials({ email });
+const findUserByCredentials = (email) => {
   user
     .findOne({ email })
     .select("+password")
     .then((user) => {
       if (user) {
-        return res.send(user.password);
+        return user;
       }
-    })
+    });
+};
+
+const login = (req, res) => {
+  const { email, password } = req.body;
+
+  // send token as response
+  user
+    .findUserByCredentials(email)
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error("incorrect email or password"));
@@ -101,13 +100,18 @@ const login = (req, res) => {
       if (!matched) {
         return Promise.reject(new Error("incorrect email or password"));
       }
-      return res.send({ message: "everything good" });
+      delete user.password;
+
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      return res.send({ message: "everything good", token });
     })
-    .then((res) => {
-      if (token) {
-        return res.send(token);
-      }
-    })
+    // .then((res) => {
+    //   if (token) {
+    //     return res.send(token);
+    //   }
+    // })
     .catch((err) => {
       return res.status(401).send({ message: err.message });
     });
@@ -117,9 +121,9 @@ const updateUser = (req, res) => {
   const { name, avatar } = req.params;
 
   user
-    .find()
-    .then((res) => {
-      return new res(req.params);
+    .findByIdAndUpdate(id, { name, avatar }, { new: true, runValidators: true })
+    .then((user) => {
+      return res.status(200).send(user);
     })
     .catch((err) => {
       if (err.name === "ValdationError") {
@@ -134,4 +138,11 @@ const updateUser = (req, res) => {
     });
 };
 
-module.exports = { getUsers, createUser, getCurrentUser, login, updateUser };
+module.exports = {
+  getUsers,
+  createUser,
+  getCurrentUser,
+  login,
+  updateUser,
+  findUserByCredentials,
+};

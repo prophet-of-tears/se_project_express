@@ -1,7 +1,9 @@
 const clothingItems = require("../models/clothingItems");
+const user = require("../models/user");
 
 const {
   invalidDataError, // 400
+  accessDeniedError, // 403
   dataNotFound, // 404
   serverError, // 500
 } = require("../utils/errors");
@@ -50,6 +52,14 @@ const deleteClothingItems = (req, res) => {
           .status(dataNotFound)
           .send({ message: "the item doesn't exist" });
       }
+      if (itemId.owner === user._id) {
+        return res.send(item);
+      } else {
+        return res
+          .status(accessDeniedError)
+          .send({ message: "current user not authorized to perform action" });
+      }
+
       return res
         .status(serverError)
         .send({ message: "An error has occured on the server" });
