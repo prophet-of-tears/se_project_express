@@ -1,10 +1,12 @@
 const router = require("express").Router();
-const { login, createUser, updateUser } = require("../controllers/users");
-const authorization = require("../middlewares/auth");
+const {
+  login,
+  createUser,
+  updateUser,
+  getCurrentUser,
+} = require("../controllers/users");
 
-router.use(authorization);
-
-router.get("/protected-route", authorization);
+router.get("/me", getCurrentUser);
 
 router.patch("/me", updateUser);
 

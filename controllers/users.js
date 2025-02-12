@@ -38,7 +38,12 @@ const createUser = (req, res) => {
         avatar,
       })
     )
-    .then((user) => res.status(201).send(user))
+    .then((user) => {
+      const userWithoutPassword = user.toObject();
+      delete userWithoutPassword.password;
+
+      return res.status(201).send(userWithoutPassword);
+    })
     .catch((err) => {
       if (err.name === "ValidationError") {
         return res.status(invalidDataError).send({ message: err.message });
@@ -53,7 +58,7 @@ const createUser = (req, res) => {
 };
 
 const getCurrentUser = (req, res) => {
-  const { userId } = req.user._id;
+  const userId = req.user._id;
 
   user
     .findById(userId)
@@ -72,58 +77,46 @@ const getCurrentUser = (req, res) => {
     });
 };
 
-const findUserByCredentials = (email) => {
-  user
-    .findOne({ email })
-    .select("+password")
-    .then((user) => {
-      if (user) {
-        return user;
-      }
-    });
-};
-
 const login = (req, res) => {
   const { email, password } = req.body;
 
+  // console.log(email);
+  // console.log(password);
+
   // send token as response
-  user
-    .findUserByCredentials(email)
+  return user
+    .findUserByCredentials(email, password)
     .then((user) => {
       if (!user) {
         return Promise.reject(new Error("incorrect email or password"));
       }
-
-      return bcrypt.compare(password, user.password);
-    })
-    .then((matched) => {
-      if (!matched) {
-        return Promise.reject(new Error("incorrect email or password"));
-      }
-      delete user.password;
-
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
-      return res.send({ message: "everything good", token });
+      //return bcrypt.compare(password, user.password)
+
+      //delete user.password;
+
+      return res.status(200).send({ message: "everything good", token });
     })
-    // .then((res) => {
-    //   if (token) {
-    //     return res.send(token);
-    //   }
-    // })
     .catch((err) => {
-      return res.status(401).send({ message: err.message });
+      console.error(err);
+      return res.status(400).send({ message: err.message });
     });
 };
 
 const updateUser = (req, res) => {
-  const { name, avatar } = req.params;
+  const { name, avatar } = req.body;
+  const userId = req.user._id;
 
   user
-    .findByIdAndUpdate(id, { name, avatar }, { new: true, runValidators: true })
+    .findByIdAndUpdate(
+      userId,
+      { name, avatar },
+      { new: true, runValidators: true }
+    )
     .then((user) => {
-      return res.status(200).send(user);
+      return res.status(200).send({ user });
     })
     .catch((err) => {
       if (err.name === "ValdationError") {
@@ -144,5 +137,4 @@ module.exports = {
   getCurrentUser,
   login,
   updateUser,
-  findUserByCredentials,
 };

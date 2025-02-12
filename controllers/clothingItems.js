@@ -38,31 +38,39 @@ const addClothingItems = (req, res) => {
 };
 
 const deleteClothingItems = (req, res) => {
-  const { itemId } = req.params;
+  const itemId = req.params.itemId;
+
   clothingItems
-    .findByIdAndDelete(itemId)
-    .orFail()
-    .then((item) => res.status(200).send(item))
+    .findById(itemId)
+    .then((item) => {
+      if (!item) {
+        return res
+          .status(dataNotFound)
+          .send({ message: "The item doesn't exist" });
+      }
+
+      if (item.owner.toString() !== req.user._id.toString()) {
+        return res
+          .status(accessDeniedError)
+          .send({ message: "Current user not authorized to perform action" });
+      }
+
+      return clothingItems
+        .findByIdAndDelete(itemId)
+        .then(() => res.status(200).send(item))
+        .catch(() =>
+          res
+            .status(serverError)
+            .send({ message: "An error occurred on the server" })
+        );
+    })
     .catch((err) => {
       if (err.name === "CastError") {
         return res.status(invalidDataError).send({ message: err.message });
       }
-      if (err.name === "DocumentNotFoundError") {
-        return res
-          .status(dataNotFound)
-          .send({ message: "the item doesn't exist" });
-      }
-      if (itemId.owner === user._id) {
-        return res.send(item);
-      } else {
-        return res
-          .status(accessDeniedError)
-          .send({ message: "current user not authorized to perform action" });
-      }
-
       return res
         .status(serverError)
-        .send({ message: "An error has occured on the server" });
+        .send({ message: "An error occurred on the server" });
     });
 };
 
