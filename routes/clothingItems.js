@@ -15,8 +15,6 @@ router.get("/", getClothingItems);
 
 router.use(authorization);
 
-router.get("/protected-route", authorization);
-
 router.post("/", addClothingItems);
 router.delete("/:itemId", deleteClothingItems);
 router.put("/:itemId/likes", handleLike);

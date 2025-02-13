@@ -1,5 +1,5 @@
 const clothingItems = require("../models/clothingItems");
-const user = require("../models/user");
+
 
 const {
   invalidDataError, // 400
@@ -38,7 +38,7 @@ const addClothingItems = (req, res) => {
 };
 
 const deleteClothingItems = (req, res) => {
-  const itemId = req.params.itemId;
+  const {itemId} = req.params;
 
   clothingItems
     .findById(itemId)
