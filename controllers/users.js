@@ -54,11 +54,10 @@ const createUser = (req, res) => {
       if (err.code === 11000) {
         return res.status(conflictError).send({ message: err.message });
       }
-      return res.status(serverError).send({ message: err.message });
+      return res
+        .status(serverError)
+        .send({ message: " an error has occured on the server" });
     });
-  return res
-    .status(serverError)
-    .send({ message: "An error has occured on the server" });
 };
 
 const getCurrentUser = (req, res) => {
@@ -84,19 +83,19 @@ const getCurrentUser = (req, res) => {
 const login = (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res
+      .status(invalidDataError)
+      .send({ message: "email and password fields required" });
+  }
+
   return user
     .findUserByCredentials(email, password)
-    .then(() => {
-      if (!email || !password) {
-        return res
-          .status(invalidDataError)
-          .send({ message: "email and password fields required" });
-      }
-
-      if (!user) {
+    .then((userData) => {
+      if (!userData) {
         return Promise.reject(new Error("incorrect email or password"));
       }
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+      const token = jwt.sign({ _id: userData._id }, JWT_SECRET, {
         expiresIn: "7d",
       });
 
