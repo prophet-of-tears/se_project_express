@@ -1,5 +1,9 @@
 const clothingItems = require("../models/clothingItems");
-
+const BadRequestError = require("../middlewares/Error-Handling");
+const UnauthorizedError = require("../middlewares/Error-Handling");
+const ForbiddenError = require("../middlewares/Error-Handling");
+const NotFoundError = require("../middlewares/Error-Handling");
+const ConflictError = require("../middlewares/Error-Handling");
 
 const {
   invalidDataError, // 400
@@ -29,7 +33,7 @@ const addClothingItems = (req, res) => {
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res.status(invalidDataError).send({ message: err.message });
+        return next(new UnauthorzedError("you are not logged in"));
       }
       return res
         .status(serverError)
@@ -38,7 +42,7 @@ const addClothingItems = (req, res) => {
 };
 
 const deleteClothingItems = (req, res) => {
-  const {itemId} = req.params;
+  const { itemId } = req.params;
 
   clothingItems
     .findById(itemId)
@@ -66,7 +70,7 @@ const deleteClothingItems = (req, res) => {
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        return res.status(invalidDataError).send({ message: err.message });
+        return next(new BadRequestError("the ID string is an invalid format"));
       }
       return res
         .status(serverError)
@@ -83,10 +87,10 @@ const handleLike = (req, res) => {
     .then((item) => res.status(200).send({ item }))
     .catch((err) => {
       if (err.name === "CastError") {
-        return res.status(invalidDataError).send({ message: err.message });
+        return next(new BadRequestError("the ID string is an invalid format"));
       }
       if (err.name === "DocumentNotFoundError") {
-        return res.status(dataNotFound).send({ message: err.message });
+        return next(new NotFoundError("unable to identify document"));
       }
       return res
         .status(serverError)
@@ -104,10 +108,10 @@ const handleDislike = (req, res) => {
     .then((item) => res.status(200).send({ item }))
     .catch((err) => {
       if (err.name === "CastError") {
-        return res.status(invalidDataError).send({ message: "incorrect Id" });
+        return next(new BadRequestError("the ID string is an invalid format"));
       }
       if (err.name === "DocumentNotFoundError") {
-        return res.status(dataNotFound).send({ message: err.message });
+        return next(new NotFoundError("not found"));
       }
       return res
         .status(serverError)

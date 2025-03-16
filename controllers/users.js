@@ -1,6 +1,11 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const user = require("../models/user");
+const BadRequestError = require("../middlewares/Error-Handling");
+const UnauthorizedError = require("../middlewares/Error-Handling");
+const ForbiddenError = require("../middlewares/Error-Handling");
+const NotFoundError = require("../middlewares/Error-Handling");
+const ConflictError = require("../middlewares/Error-Handling");
 
 const {
   invalidDataError, //  400
@@ -10,17 +15,6 @@ const {
   conflictError, // 409
 } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
-
-// const getUsers = (req, res) => {
-//   user
-//     .find({})
-//     .then((users) => res.status(200).send(users))
-//     .catch(() =>
-//       res
-//         .status(serverError)
-//         .send({ message: "An error has occured on the server" })
-//     );
-// };
 
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
@@ -49,10 +43,12 @@ const createUser = (req, res) => {
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res.status(invalidDataError).send({ message: err.message });
+        return next(
+          new BadRequestError("The id string is in an invalid format")
+        );
       }
       if (err.code === 11000) {
-        return res.status(conflictError).send({ message: err.message });
+        return next(new ConflictError("The id string is in an invalid format"));
       }
       return res
         .status(serverError)
@@ -69,10 +65,11 @@ const getCurrentUser = (req, res) => {
     .then((users) => res.status(200).send(users))
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        return res.status(dataNotFound).send({ message: err.message });
+        return next(new NotFoundError("could not find"));
       }
       if (err.name === "CastError") {
-        return res.status(invalidDataError).send({ message: err.message });
+        next(new BadRequestError("The id string is in an invalid format"));
+        // return res.status(invalidDataError).send({ message: err.message });
       }
       return res
         .status(serverError)
@@ -103,7 +100,7 @@ const login = (req, res) => {
     })
     .catch((err) => {
       if (err.message === "email or password is incorrect") {
-        return res.status(unauthorizedError).send({ message: err.message });
+        return next(new BadRequestError("information entered is not valid"));
       }
 
       return res.status(serverError).send({ message: err.message });
@@ -123,13 +120,12 @@ const updateUser = (req, res) => {
     .then((loggedUser) => res.status(200).send({ user: loggedUser }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res.status(invalidDataError).send({ message: "invalid Data" });
+        return next(new UnauthorizedError("user is unauthorized"));
       }
 
       if (err.name === "DocumentNotFoundError") {
-        return res.status(dataNotFound).send({ message: err.message });
+        return next(new NotFoundError("not found"));
       }
-
       return res.status(serverError).send({ message: "server Error" });
     });
 };
