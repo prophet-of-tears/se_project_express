@@ -2,8 +2,14 @@ const express = require("express");
 const app = express();
 
 app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+
+  const message =
+    statusCode === 500 ? "an error has occured on the server" : err.message;
+
   console.error(err);
-  res.status(err.statusCode).send({ message: err.message });
+  res.status(statusCode).send({ message });
+  next();
 });
 
 class BadRequestError extends Error {
@@ -41,12 +47,20 @@ class ConflictError extends Error {
   }
 }
 
+class ServerError extends Error {
+  constructor(message) {
+    super(message);
+    this.statusCode = 500;
+  }
+}
+
 module.exports = {
   BadRequestError,
   UnauthorizedError,
   ForbiddenError,
   NotFoundError,
   ConflictError,
+  ServerError,
 };
 
 module.exports = app;

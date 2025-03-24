@@ -35,9 +35,7 @@ const addClothingItems = (req, res) => {
       if (err.name === "ValidationError") {
         return next(new UnauthorzedError("you are not logged in"));
       }
-      return res
-        .status(serverError)
-        .send({ message: "An error has occured on the server" });
+      return next(new serverError("something went wrong in the server"));
     });
 };
 
@@ -48,15 +46,11 @@ const deleteClothingItems = (req, res) => {
     .findById(itemId)
     .then((item) => {
       if (!item) {
-        return res
-          .status(dataNotFound)
-          .send({ message: "The item doesn't exist" });
+        return next(new NotFoundError("the item doesn't exist"));
       }
 
       if (item.owner.toString() !== req.user._id.toString()) {
-        return res
-          .status(accessDeniedError)
-          .send({ message: "Current user not authorized to perform action" });
+        return next(new ForbiddenError("current user not authorized"));
       }
 
       return clothingItems

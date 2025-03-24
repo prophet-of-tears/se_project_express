@@ -20,9 +20,7 @@ const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
 
   if (!name || !avatar || !email || !password) {
-    return res
-      .status(invalidDataError)
-      .send({ message: "email and password are required" });
+    return next(new BadRequestError("email and password are required"));
   }
 
   bcrypt
@@ -68,7 +66,9 @@ const getCurrentUser = (req, res) => {
         return next(new NotFoundError("could not find"));
       }
       if (err.name === "CastError") {
-        next(new BadRequestError("The id string is in an invalid format"));
+        return next(
+          new BadRequestError("The id string is in an invalid format")
+        );
         // return res.status(invalidDataError).send({ message: err.message });
       }
       return res
@@ -81,9 +81,7 @@ const login = (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res
-      .status(invalidDataError)
-      .send({ message: "email and password fields required" });
+    return next(new BadRequestError("email and password fields are required"));
   }
 
   return user
