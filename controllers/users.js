@@ -1,29 +1,22 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const user = require("../models/user");
-const BadRequestError = require("../middlewares/Error-Handling");
-const UnauthorizedError = require("../middlewares/Error-Handling");
-const ForbiddenError = require("../middlewares/Error-Handling");
-const NotFoundError = require("../middlewares/Error-Handling");
-const ConflictError = require("../middlewares/Error-Handling");
+const BadRequestError = require("../Error-Handling/BadRequestError");
+const UnauthorizedError = require("../Error-Handling/UnauthorizedError");
+const NotFoundError = require("../Error-Handling/NotFoundError");
+const ConflictError = require("../Error-Handling/ConflictError");
+const ServerError = require("../Error-Handling/ServerError");
 
-const {
-  invalidDataError, //  400
-  unauthorizedError, // 401
-  dataNotFound, // 404
-  serverError, // 500
-  conflictError, // 409
-} = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   if (!name || !avatar || !email || !password) {
     return next(new BadRequestError("email and password are required"));
   }
 
-  bcrypt
+  return bcrypt
     .hash(req.body.password, 10)
     .then((hash) =>
       user.create({
@@ -49,12 +42,12 @@ const createUser = (req, res) => {
         return next(new ConflictError("The id string is in an invalid format"));
       }
       return res
-        .status(serverError)
+        .status(ServerError)
         .send({ message: " an error has occured on the server" });
     });
 };
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   const userId = req.user._id;
 
   user
@@ -72,12 +65,12 @@ const getCurrentUser = (req, res) => {
         // return res.status(invalidDataError).send({ message: err.message });
       }
       return res
-        .status(serverError)
+        .status(ServerError)
         .send({ message: "An error has occured on the server" });
     });
 };
 
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -101,11 +94,11 @@ const login = (req, res) => {
         return next(new BadRequestError("information entered is not valid"));
       }
 
-      return res.status(serverError).send({ message: err.message });
+      return res.status(ServerError).send({ message: err.message });
     });
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, avatar } = req.body;
   const userId = req.user._id;
 
@@ -124,7 +117,7 @@ const updateUser = (req, res) => {
       if (err.name === "DocumentNotFoundError") {
         return next(new NotFoundError("not found"));
       }
-      return res.status(serverError).send({ message: "server Error" });
+      return res.status(ServerError).send({ message: "server Error" });
     });
 };
 

@@ -1,16 +1,9 @@
 const clothingItems = require("../models/clothingItems");
-const BadRequestError = require("../middlewares/Error-Handling");
-const UnauthorizedError = require("../middlewares/Error-Handling");
-const ForbiddenError = require("../middlewares/Error-Handling");
-const NotFoundError = require("../middlewares/Error-Handling");
-const ConflictError = require("../middlewares/Error-Handling");
-
-const {
-  invalidDataError, // 400
-  accessDeniedError, // 403
-  dataNotFound, // 404
-  serverError, // 500
-} = require("../utils/errors");
+const BadRequestError = require("../Error-Handling/BadRequestError");
+const UnauthorizedError = require("../Error-Handling/UnauthorizedError");
+const ForbiddenError = require("../Error-Handling/ForbiddenError");
+const NotFoundError = require("../Error-Handling/NotFoundError");
+const ServerError = require("../Error-Handling/ServerError");
 
 const getClothingItems = (req, res) => {
   clothingItems
@@ -18,12 +11,12 @@ const getClothingItems = (req, res) => {
     .then((items) => res.status(200).send(items))
     .catch(() =>
       res
-        .status(serverError)
+        .status(ServerError)
         .send({ message: "An error has occured on the server" })
     );
 };
 
-const addClothingItems = (req, res) => {
+const addClothingItems = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
 
   clothingItems
@@ -33,13 +26,13 @@ const addClothingItems = (req, res) => {
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return next(new UnauthorzedError("you are not logged in"));
+        return next(new UnauthorizedError("you are not logged in"));
       }
-      return next(new serverError("something went wrong in the server"));
+      return next(new ServerError("something went wrong in the server"));
     });
 };
 
-const deleteClothingItems = (req, res) => {
+const deleteClothingItems = (req, res, next) => {
   const { itemId } = req.params;
 
   clothingItems
@@ -58,7 +51,7 @@ const deleteClothingItems = (req, res) => {
         .then(() => res.status(200).send(item))
         .catch(() =>
           res
-            .status(serverError)
+            .status(ServerError)
             .send({ message: "An error occurred on the server" })
         );
     })
@@ -67,12 +60,12 @@ const deleteClothingItems = (req, res) => {
         return next(new BadRequestError("the ID string is an invalid format"));
       }
       return res
-        .status(serverError)
+        .status(ServerError)
         .send({ message: "An error occurred on the server" });
     });
 };
 
-const handleLike = (req, res) => {
+const handleLike = (req, res, next) => {
   const { itemId } = req.params;
   const { _id } = req.user;
   clothingItems
@@ -87,12 +80,12 @@ const handleLike = (req, res) => {
         return next(new NotFoundError("unable to identify document"));
       }
       return res
-        .status(serverError)
+        .status(ServerError)
         .send({ message: "An error has occured on the server" });
     });
 };
 
-const handleDislike = (req, res) => {
+const handleDislike = (req, res, next) => {
   const { itemId } = req.params;
   const { _id } = req.user;
 
@@ -108,7 +101,7 @@ const handleDislike = (req, res) => {
         return next(new NotFoundError("not found"));
       }
       return res
-        .status(serverError)
+        .status(ServerError)
         .send({ message: "An error has occured on the server" });
     });
 };
