@@ -5,4 +5,4 @@ class BadRequestError extends Error {
   }
 }
 
-export default BadRequestError;
+module.exports = BadRequestError;

@@ -5,7 +5,6 @@ const BadRequestError = require("../Error-Handling/BadRequestError");
 const UnauthorizedError = require("../Error-Handling/UnauthorizedError");
 const NotFoundError = require("../Error-Handling/NotFoundError");
 const ConflictError = require("../Error-Handling/ConflictError");
-const ServerError = require("../Error-Handling/ServerError");
 
 const { JWT_SECRET } = require("../utils/config");
 
@@ -41,9 +40,7 @@ const createUser = (req, res, next) => {
       if (err.code === 11000) {
         return next(new ConflictError("The id string is in an invalid format"));
       }
-      return res
-        .status(ServerError)
-        .send({ message: " an error has occured on the server" });
+      next(err);
     });
 };
 
@@ -64,9 +61,7 @@ const getCurrentUser = (req, res, next) => {
         );
         // return res.status(invalidDataError).send({ message: err.message });
       }
-      return res
-        .status(ServerError)
-        .send({ message: "An error has occured on the server" });
+      next(err);
     });
 };
 
@@ -91,10 +86,10 @@ const login = (req, res, next) => {
     })
     .catch((err) => {
       if (err.message === "email or password is incorrect") {
-        return next(new BadRequestError("information entered is not valid"));
+        return next(new UnauthorizedError("information entered is not valid"));
       }
 
-      return res.status(ServerError).send({ message: err.message });
+      next(err);
     });
 };
 
@@ -111,13 +106,13 @@ const updateUser = (req, res, next) => {
     .then((loggedUser) => res.status(200).send({ user: loggedUser }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return next(new UnauthorizedError("user is unauthorized"));
+        return next(new BadRequestError("user is unauthorized"));
       }
 
       if (err.name === "DocumentNotFoundError") {
         return next(new NotFoundError("not found"));
       }
-      return res.status(ServerError).send({ message: "server Error" });
+      next(err);
     });
 };
 

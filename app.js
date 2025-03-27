@@ -34,10 +34,8 @@ app.listen(PORT, () => {
   console.log(`server is listening on port ${PORT}`);
 });
 
-app.use(errorHandler);
-
-app.use(errorLogger);
 app.use(requestLogger);
 app.use(routes);
-
+app.use(errorLogger);
 app.use(errors());
+app.use(errorHandler);

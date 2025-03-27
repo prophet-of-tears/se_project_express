@@ -3,7 +3,7 @@ const expressWinston = require("express-winston");
 
 // The winston.format function allows us to customize how our logs
 // are formatted. In this case, we are using a built-in timestamp
-// format, as well as Winston's generic printf method.
+// format, as well as Winston's generic print method.
 const messageFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.printf(

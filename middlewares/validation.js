@@ -25,7 +25,6 @@ module.exports.validateUpdateUser = celebrate({
       "string.empty": 'The "avatar" field must be filled in',
       "string.uri": 'the "avatar" field must be a valid url',
     }),
-    weather: Joi.string().valid("hot", "warm", "cold").required(),
   }),
 });
 module.exports.validateSignup = celebrate({

@@ -1,6 +1,5 @@
 const clothingItems = require("../models/clothingItems");
 const BadRequestError = require("../Error-Handling/BadRequestError");
-const UnauthorizedError = require("../Error-Handling/UnauthorizedError");
 const ForbiddenError = require("../Error-Handling/ForbiddenError");
 const NotFoundError = require("../Error-Handling/NotFoundError");
 const ServerError = require("../Error-Handling/ServerError");
@@ -9,11 +8,7 @@ const getClothingItems = (req, res) => {
   clothingItems
     .find({})
     .then((items) => res.status(200).send(items))
-    .catch(() =>
-      res
-        .status(ServerError)
-        .send({ message: "An error has occured on the server" })
-    );
+    .catch(() => next(err));
 };
 
 const addClothingItems = (req, res, next) => {
@@ -26,7 +21,7 @@ const addClothingItems = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return next(new UnauthorizedError("you are not logged in"));
+        return next(new BadRequestError("you are not logged in"));
       }
       return next(new ServerError("something went wrong in the server"));
     });
@@ -49,19 +44,13 @@ const deleteClothingItems = (req, res, next) => {
       return clothingItems
         .findByIdAndDelete(itemId)
         .then(() => res.status(200).send(item))
-        .catch(() =>
-          res
-            .status(ServerError)
-            .send({ message: "An error occurred on the server" })
-        );
+        .catch(() => next(err));
     })
     .catch((err) => {
       if (err.name === "CastError") {
         return next(new BadRequestError("the ID string is an invalid format"));
       }
-      return res
-        .status(ServerError)
-        .send({ message: "An error occurred on the server" });
+      next(err);
     });
 };
 
@@ -79,9 +68,7 @@ const handleLike = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         return next(new NotFoundError("unable to identify document"));
       }
-      return res
-        .status(ServerError)
-        .send({ message: "An error has occured on the server" });
+      next(err);
     });
 };
 
@@ -100,9 +87,7 @@ const handleDislike = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         return next(new NotFoundError("not found"));
       }
-      return res
-        .status(ServerError)
-        .send({ message: "An error has occured on the server" });
+      next(err);
     });
 };
 
