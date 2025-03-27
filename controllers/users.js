@@ -40,7 +40,7 @@ const createUser = (req, res, next) => {
       if (err.code === 11000) {
         return next(new ConflictError("The id string is in an invalid format"));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -61,7 +61,7 @@ const getCurrentUser = (req, res, next) => {
         );
         // return res.status(invalidDataError).send({ message: err.message });
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -89,7 +89,7 @@ const login = (req, res, next) => {
         return next(new UnauthorizedError("information entered is not valid"));
       }
 
-      next(err);
+      return next(err);
     });
 };
 
@@ -112,7 +112,7 @@ const updateUser = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         return next(new NotFoundError("not found"));
       }
-      next(err);
+      return next(err);
     });
 };
 

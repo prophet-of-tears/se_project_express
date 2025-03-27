@@ -4,11 +4,11 @@ const ForbiddenError = require("../Error-Handling/ForbiddenError");
 const NotFoundError = require("../Error-Handling/NotFoundError");
 const ServerError = require("../Error-Handling/ServerError");
 
-const getClothingItems = (req, res) => {
+const getClothingItems = (req, res, next) => {
   clothingItems
     .find({})
     .then((items) => res.status(200).send(items))
-    .catch(() => next(err));
+    .catch((err) => next(err));
 };
 
 const addClothingItems = (req, res, next) => {
@@ -44,13 +44,13 @@ const deleteClothingItems = (req, res, next) => {
       return clothingItems
         .findByIdAndDelete(itemId)
         .then(() => res.status(200).send(item))
-        .catch(() => next(err));
+        .catch((err) => next(err));
     })
     .catch((err) => {
       if (err.name === "CastError") {
         return next(new BadRequestError("the ID string is an invalid format"));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -68,7 +68,7 @@ const handleLike = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         return next(new NotFoundError("unable to identify document"));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -87,7 +87,7 @@ const handleDislike = (req, res, next) => {
       if (err.name === "DocumentNotFoundError") {
         return next(new NotFoundError("not found"));
       }
-      next(err);
+      return next(err);
     });
 };
 
