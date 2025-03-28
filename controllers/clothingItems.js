@@ -15,7 +15,7 @@ const addClothingItems = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
 
   clothingItems
-    .create({ name, weather, imageUrl, owner: req.user._id })
+    .create({ name, weather, imageUrl })
     .then((items) => {
       res.status(201).send({ data: items });
     })
@@ -37,9 +37,9 @@ const deleteClothingItems = (req, res, next) => {
         return next(new NotFoundError("the item doesn't exist"));
       }
 
-      if (item.owner.toString() !== req.user._id.toString()) {
-        return next(new ForbiddenError("current user not authorized"));
-      }
+      // if (item.owner.toString() !== req.user._id.toString()) {
+      //   return next(new ForbiddenError("current user not authorized"));
+      // }
 
       return clothingItems
         .findByIdAndDelete(itemId)
