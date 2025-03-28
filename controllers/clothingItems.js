@@ -13,15 +13,16 @@ const getClothingItems = (req, res, next) => {
 
 const addClothingItems = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
+  const owner = req.user._id;
 
   clothingItems
-    .create({ name, weather, imageUrl })
+    .create({ name, weather, imageUrl, owner })
     .then((items) => {
       res.status(201).send({ data: items });
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return next(new BadRequestError("you are not logged in"));
+        return next(new BadRequestError(err.message));
       }
       return next(new ServerError("something went wrong in the server"));
     });
@@ -36,10 +37,11 @@ const deleteClothingItems = (req, res, next) => {
       if (!item) {
         return next(new NotFoundError("the item doesn't exist"));
       }
-
-      // if (item.owner.toString() !== req.user._id.toString()) {
-      //   return next(new ForbiddenError("current user not authorized"));
-      // }
+      console.log(item.owner);
+      console.log(req.user._id);
+      if (item.owner.toString() !== req.user._id.toString()) {
+        return next(new ForbiddenError("current user not authorized"));
+      }
 
       return clothingItems
         .findByIdAndDelete(itemId)
