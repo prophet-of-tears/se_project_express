@@ -17,10 +17,8 @@ const addClothingItems = (req, res, next) => {
 
   clothingItems
     .create({ name, weather, imageUrl, owner })
-    .then((items) => {
-      const itemObject = items.toObject();
-      delete itemObject._id;
-      res.status(201).send({ data: itemObject });
+    .then((item) => {
+      res.status(201).send({ data: item });
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
